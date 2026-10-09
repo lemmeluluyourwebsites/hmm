@@ -3,9 +3,9 @@
 export const PERSONAL_OPEN_LETTERS_URL =
   'https://openwhenletters.app/c/50985211-70cc-4705-85b2-2b786a28429c/v/e589b11821d520f4346a76b611480fb81e7197d3d31d608900fe0cc4b5d7b927';
 
-// Sample open letter link for the influencer (can be easily updated when you provide the exact link)
+// Sample open letter link for the influencer
 export const SAMPLE_OPEN_LETTERS_URL =
-  'https://openwhenletters.app';
+  'https://openwhenletters.app/c/fa774264-b852-432a-8940-cdbdb8d08d66/v/270550c3e16610412919a2797e90cc1bab7363f5a445337e8df39ebfbb812f2e';
 
 // Personal keepsake photos for Tirth and Krisha
 export const PERSONAL_PHOTOS = [
