@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const USERS = [
-  { username: 'tirth', password: 'smile', name: 'Tirth', isInfluencer: false },
-  { username: 'krisha', password: 'smile', name: 'Krisha', isInfluencer: false },
+  { username: 'tirth', password: 'hehe', name: 'Tirth', isInfluencer: false },
+  { username: 'krisha', password: 'hehe', name: 'Krisha', isInfluencer: false },
   { username: 'influencer', password: 'influence', name: 'Influencer', isInfluencer: true },
 ];
 
