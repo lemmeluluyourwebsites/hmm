@@ -11,8 +11,6 @@ A mobile-first, emotionally engaging web application designed as a cozy, safe ha
 
 ## Authentication and Access Levels
 The application features a secure landing page for restricted access:
-- **Tirth** (username: `tirth`, password: `smile`): Full access to personal keepsake photos and personal Open When Letters.
-- **Krisha** (username: `krisha`, password: `smile`): Full access to personal keepsake photos and personal Open When Letters.
 - **Influencer** (username: `influencer`, password: `influence`): Limited demo access. Personal photos are replaced with aesthetic public couple photos in the scratch card, and the Open When Letters card routes to sample open letters.
 
 ## Core Sections and Features
