@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Play, Pause, RotateCcw, Sparkles } from 'lucide-react';
 import { playHeartChime } from '../../utils/audio';
 
@@ -13,25 +12,24 @@ const PRAISES = [
   { min: 35, text: 'Endless hugs and adoration for you.' },
 ];
 
+const EMOJIS = ['💖', '💕', '🌸', '✨', '💗', '🎀'];
+
 export default function CatchHeartsGame() {
-  const containerRef = useRef(null);
   const [score, setScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [basketX, setBasketX] = useState(150);
-  const [floatingTexts, setFloatingTexts] = useState([]);
 
-  // Game loop state refs
-  const scoreRef = useRef(0);
+  const canvasRef = useRef(null);
+  const animFrameRef = useRef(null);
   const isPlayingRef = useRef(true);
+  const scoreRef = useRef(0);
   const basketXRef = useRef(150);
   const heartsRef = useRef([]);
-  const animFrameRef = useRef(null);
+  const floatingNoticesRef = useRef([]);
   const lastSpawnRef = useRef(0);
+  const lastTimeRef = useRef(performance.now());
 
-  // Synchronize refs
-  scoreRef.current = score;
   isPlayingRef.current = isPlaying;
-  basketXRef.current = basketX;
+  scoreRef.current = score;
 
   const getPraise = (currentScore) => {
     let matched = PRAISES[0].text;
@@ -44,108 +42,169 @@ export default function CatchHeartsGame() {
   };
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const width = container.offsetWidth || 340;
-    const height = 400;
-    setBasketX(width / 2);
+    const ctx = canvas.getContext('2d');
+    let width = (canvas.width = canvas.offsetWidth);
+    let height = (canvas.height = canvas.offsetHeight);
+
     basketXRef.current = width / 2;
 
-    let heartId = 0;
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = canvas.offsetWidth;
+      height = canvas.height = canvas.offsetHeight;
+    };
+    window.addEventListener('resize', handleResize);
 
-    const spawnHeart = (time) => {
-      // Spawn a heart every ~1100ms for slow and relaxing gameplay
-      if (time - lastSpawnRef.current > 1100) {
-        lastSpawnRef.current = time;
-        const emojis = ['💖', '💕', '🌸', '✨', '💗', '🎀'];
+    const spawnEmoji = (now) => {
+      if (now - lastSpawnRef.current > 1050) {
+        lastSpawnRef.current = now;
         heartsRef.current.push({
-          id: heartId++,
-          x: Math.random() * (width - 60) + 30,
-          y: -20,
-          baseX: Math.random() * (width - 60) + 30,
+          x: Math.random() * (width - 70) + 35,
+          y: -25,
+          baseX: Math.random() * (width - 70) + 35,
           swayOffset: Math.random() * Math.PI * 2,
-          speed: Math.random() * 0.9 + 0.8, // Very slow, forgiving speed
+          speed: Math.random() * 50 + 65, // Pixels per second
           size: Math.random() * 6 + 24,
-          emoji: emojis[Math.floor(Math.random() * emojis.length)],
+          emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
         });
       }
     };
 
-    const updateGame = (time) => {
+    const updateAndRender = (now) => {
+      const dt = Math.min((now - lastTimeRef.current) / 1000, 0.05);
+      lastTimeRef.current = now;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Background subtle gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+      bgGrad.addColorStop(0, '#09030c');
+      bgGrad.addColorStop(1, '#150717');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+
       if (isPlayingRef.current) {
-        spawnHeart(time);
+        spawnEmoji(now);
 
-        const currentBasketX = basketXRef.current;
-        const basketY = height - 55;
-        const basketWidth = 90; // Generous catching area
+        const basketX = basketXRef.current;
+        const basketY = height - 42;
+        const basketW = 86;
+        const basketH = 34;
 
-        // Update each heart
-        const remainingHearts = [];
-
+        // Update emojis
+        const surviving = [];
         for (let i = 0; i < heartsRef.current.length; i++) {
-          const h = heartsRef.current[i];
-          h.y += h.speed;
-          // Gentle sinusoidal sway like a leaf or petal
-          h.x = h.baseX + Math.sin(h.y * 0.02 + h.swayOffset) * 22;
+          const item = heartsRef.current[i];
+          item.y += item.speed * dt;
+          item.x = item.baseX + Math.sin(item.y * 0.025 + item.swayOffset) * 20;
 
-          // Check collision with basket
-          const isCaught =
-            h.y >= basketY - 15 &&
-            h.y <= basketY + 30 &&
-            Math.abs(h.x - currentBasketX) < basketWidth / 2 + 10;
-
-          if (isCaught) {
-            // Heart caught
+          // Catch collision
+          if (
+            item.y >= basketY - 10 &&
+            item.y <= basketY + basketH &&
+            Math.abs(item.x - basketX) < basketW / 2 + 12
+          ) {
             playHeartChime();
             if (navigator.vibrate) {
               navigator.vibrate(25);
             }
+            const nextScore = scoreRef.current + 1;
+            scoreRef.current = nextScore;
+            setScore(nextScore);
 
-            const newScore = scoreRef.current + 1;
-            scoreRef.current = newScore;
-            setScore(newScore);
-
-            // Trigger floating text
-            const textId = Math.random();
-            setFloatingTexts((prev) => [
-              ...prev.slice(-4),
-              { id: textId, x: currentBasketX, y: basketY - 20, text: '+1 💕' },
-            ]);
-            setTimeout(() => {
-              setFloatingTexts((prev) => prev.filter((t) => t.id !== textId));
-            }, 900);
-          } else if (h.y < height + 40) {
-            // Heart still on screen
-            remainingHearts.push(h);
+            floatingNoticesRef.current.push({
+              x: basketX,
+              y: basketY - 15,
+              alpha: 1,
+            });
+          } else if (item.y < height + 35) {
+            surviving.push(item);
           }
         }
+        heartsRef.current = surviving;
 
-        heartsRef.current = remainingHearts;
+        // Update floating notices
+        for (let i = floatingNoticesRef.current.length - 1; i >= 0; i--) {
+          const fn = floatingNoticesRef.current[i];
+          fn.y -= 38 * dt;
+          fn.alpha -= 1.2 * dt;
+          if (fn.alpha <= 0) {
+            floatingNoticesRef.current.splice(i, 1);
+          }
+        }
       }
 
-      animFrameRef.current = requestAnimationFrame(updateGame);
+      // Draw all falling emojis
+      for (let i = 0; i < heartsRef.current.length; i++) {
+        const item = heartsRef.current[i];
+        ctx.font = `${item.size}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(item.emoji, item.x, item.y);
+      }
+
+      // Draw floating notices
+      for (let i = 0; i < floatingNoticesRef.current.length; i++) {
+        const fn = floatingNoticesRef.current[i];
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, fn.alpha);
+        ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#ff69b4';
+        ctx.textAlign = 'center';
+        ctx.fillText('+1 💕', fn.x, fn.y);
+        ctx.restore();
+      }
+
+      // Draw the Basket
+      const currentBasketX = basketXRef.current;
+      const bY = height - 42;
+      const bW = 86;
+      const bH = 32;
+
+      ctx.save();
+      // Ribbon
+      ctx.font = '14px "Segoe UI Emoji", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎀', currentBasketX, bY - 4);
+
+      // Basket shape
+      ctx.beginPath();
+      ctx.roundRect(currentBasketX - bW / 2, bY, bW, bH, [6, 6, 16, 16]);
+      ctx.fillStyle = '#22081d';
+      ctx.fill();
+      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = '#f48fb1';
+      ctx.stroke();
+
+      // Inner highlight
+      ctx.beginPath();
+      ctx.roundRect(currentBasketX - bW / 2 + 10, bY + 6, bW - 20, 2, 2);
+      ctx.fillStyle = 'rgba(255, 182, 193, 0.4)';
+      ctx.fill();
+      ctx.restore();
+
+      animFrameRef.current = requestAnimationFrame(updateAndRender);
     };
 
-    animFrameRef.current = requestAnimationFrame(updateGame);
+    animFrameRef.current = requestAnimationFrame(updateAndRender);
 
     return () => {
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
+      cancelAnimationFrame(animFrameRef.current);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-  // Pointer drag handling for mobile basket
-  const handlePointerMove = (e) => {
-    const container = containerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
+  const handlePointer = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX ?? e.touches?.[0]?.clientX;
     if (clientX === undefined) return;
 
     const x = Math.max(45, Math.min(rect.width - 45, clientX - rect.left));
-    setBasketX(x);
     basketXRef.current = x;
   };
 
@@ -153,8 +212,9 @@ export default function CatchHeartsGame() {
     setScore(0);
     scoreRef.current = 0;
     heartsRef.current = [];
+    floatingNoticesRef.current = [];
     if (navigator.vibrate) {
-      navigator.vibrate(40);
+      navigator.vibrate(35);
     }
   };
 
@@ -171,12 +231,11 @@ export default function CatchHeartsGame() {
               Catch the Hearts
             </h3>
             <p className="text-[11px] text-pink-200/60 font-light">
-              Slide gently to catch the drifting hearts
+              Slide gently to catch the drifting emojis
             </p>
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
@@ -195,11 +254,11 @@ export default function CatchHeartsGame() {
         </div>
       </div>
 
-      {/* Gentle Score Banner & Praise */}
+      {/* Score Banner */}
       <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-black/40 border border-pink-400/20 text-center gap-1">
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wider text-pink-300/80 font-medium">
-            Hearts Collected
+            Emojis Collected
           </span>
           <span className="text-xl font-bold text-pink-300 drop-shadow-[0_0_8px_rgba(255,105,180,0.4)]">
             {score}
@@ -210,77 +269,18 @@ export default function CatchHeartsGame() {
         </p>
       </div>
 
-      {/* Interactive Game Arena */}
+      {/* Lag-Free Canvas Arena */}
       <div
-        ref={containerRef}
-        onMouseMove={handlePointerMove}
-        onTouchMove={handlePointerMove}
-        onTouchStart={handlePointerMove}
-        className="relative w-full h-[380px] rounded-2xl overflow-hidden bg-gradient-to-b from-[#09030c] to-[#150717] border border-pink-400/30 select-none touch-none shadow-inner cursor-pointer"
+        className="relative w-full h-[380px] rounded-2xl overflow-hidden border border-pink-400/30 touch-none select-none cursor-pointer"
+        onMouseMove={handlePointer}
+        onTouchMove={handlePointer}
+        onTouchStart={handlePointer}
       >
-        {/* Subtle background stars and glow */}
-        <div className="absolute inset-0 pointer-events-none opacity-20">
-          <div className="absolute top-10 left-12 w-1 h-1 bg-pink-300 rounded-full animate-ping" />
-          <div className="absolute top-28 right-16 w-1 h-1 bg-white rounded-full animate-pulse" />
-          <div className="absolute top-48 left-20 w-1.5 h-1.5 bg-pink-400 rounded-full animate-pulse" />
-        </div>
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full block"
+        />
 
-        {/* Falling Hearts */}
-        {heartsRef.current.map((h) => (
-          <div
-            key={h.id}
-            className="absolute pointer-events-none select-none transition-transform duration-75"
-            style={{
-              left: `${h.x}px`,
-              top: `${h.y}px`,
-              fontSize: `${h.size}px`,
-              transform: 'translate(-50%, -50%)',
-              filter: 'drop-shadow(0 0 8px rgba(255, 105, 180, 0.45))',
-            }}
-          >
-            {h.emoji}
-          </div>
-        ))}
-
-        {/* Floating score notices */}
-        {floatingTexts.map((f) => (
-          <motion.div
-            key={f.id}
-            initial={{ opacity: 1, y: 0, scale: 0.8 }}
-            animate={{ opacity: 0, y: -35, scale: 1.1 }}
-            transition={{ duration: 0.8 }}
-            className="absolute pointer-events-none text-xs font-bold text-pink-300 drop-shadow"
-            style={{
-              left: `${f.x}px`,
-              top: `${f.y}px`,
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            {f.text}
-          </motion.div>
-        ))}
-
-        {/* The Cute Basket */}
-        <div
-          className="absolute bottom-5 pointer-events-none transition-[left] duration-75 flex flex-col items-center"
-          style={{
-            left: `${basketX}px`,
-            transform: 'translateX(-50%)',
-          }}
-        >
-          {/* Basket ribbon decoration */}
-          <div className="text-xs mb-[-6px] z-10 filter drop-shadow-[0_2px_4px_rgba(255,105,180,0.5)]">
-            🎀
-          </div>
-
-          {/* Woven glass basket SVG */}
-          <div className="relative w-24 h-12 rounded-b-2xl rounded-t-lg bg-gradient-to-b from-[#2a0f25] to-[#1a0516] border-2 border-pink-400/60 shadow-[0_4px_20px_rgba(255,105,180,0.4)] flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(#ff69b4_1px,transparent_1px)] [background-size:8px_8px] opacity-25" />
-            <div className="w-16 h-1 rounded-full bg-pink-400/50 mb-1" />
-          </div>
-        </div>
-
-        {/* Paused Overlay */}
         {!isPlaying && (
           <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
             <span className="text-sm font-medium text-pink-200">Game Paused</span>

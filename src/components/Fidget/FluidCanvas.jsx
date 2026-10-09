@@ -1,9 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 
 /**
- * Lightweight interactive fluid ripple and particle simulation.
- * Creates slow-moving glowing pink ripples and viscous liquid trails
- * on touch/mouse drag across the fidget area.
+ * Interactive fluid ripple simulation.
+ * Creates clean, fast-dissipating pink ripples and water glows
+ * on touch or drag without cluttering the screen.
  */
 export default function FluidCanvas() {
   const canvasRef = useRef(null);
@@ -24,7 +24,6 @@ export default function FluidCanvas() {
     };
     window.addEventListener('resize', handleResize);
 
-    // Ripples array
     const ripples = [];
     const particles = [];
 
@@ -33,15 +32,15 @@ export default function FluidCanvas() {
         this.x = x;
         this.y = y;
         this.radius = 4;
-        this.maxRadius = Math.random() * 60 + 50;
-        this.alpha = 0.6;
-        this.speed = Math.random() * 0.8 + 0.6; // slow, mesmerizing speed
-        this.hue = Math.random() * 20 + 330; // Soft pink to cherry blossom
+        this.alpha = 0.75;
+        this.speed = Math.random() * 1.2 + 1.2;
+        this.hue = Math.random() * 20 + 330;
       }
 
       update() {
         this.radius += this.speed;
-        this.alpha -= 0.007;
+        // Faster decay so ripples dissipate cleanly without getting messy
+        this.alpha -= 0.024;
       }
 
       draw(context) {
@@ -50,9 +49,9 @@ export default function FluidCanvas() {
         context.beginPath();
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         context.strokeStyle = `hsla(${this.hue}, 100%, 78%, ${this.alpha})`;
-        context.lineWidth = 2.5;
-        context.shadowBlur = 14;
-        context.shadowColor = `hsla(${this.hue}, 100%, 70%, 0.8)`;
+        context.lineWidth = 2;
+        context.shadowBlur = 10;
+        context.shadowColor = `hsla(${this.hue}, 100%, 70%, 0.6)`;
         context.stroke();
         context.restore();
       }
@@ -62,20 +61,21 @@ export default function FluidCanvas() {
       constructor(x, y, vx, vy) {
         this.x = x;
         this.y = y;
-        this.vx = vx * 0.3;
-        this.vy = vy * 0.3;
-        this.size = Math.random() * 14 + 6;
-        this.alpha = 0.5;
+        this.vx = vx * 0.25;
+        this.vy = vy * 0.25;
+        this.size = Math.random() * 8 + 4;
+        this.alpha = 0.65;
         this.color = Math.random() > 0.5 ? '#ff69b4' : '#ffd1dc';
       }
 
       update() {
         this.x += this.vx;
         this.y += this.vy;
-        this.vx *= 0.94; // damping
-        this.vy *= 0.94;
-        this.alpha -= 0.009;
-        this.size *= 0.98;
+        this.vx *= 0.9;
+        this.vy *= 0.9;
+        // Dissolves quickly
+        this.alpha -= 0.035;
+        this.size *= 0.94;
       }
 
       draw(context) {
@@ -85,7 +85,7 @@ export default function FluidCanvas() {
         context.arc(this.x, this.y, Math.max(1, this.size), 0, Math.PI * 2);
         context.fillStyle = this.color;
         context.globalAlpha = Math.max(0, this.alpha);
-        context.shadowBlur = 18;
+        context.shadowBlur = 12;
         context.shadowColor = '#ff69b4';
         context.fill();
         context.restore();
@@ -101,11 +101,9 @@ export default function FluidCanvas() {
       const dy = y - lastY;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      if (dist > 5 || ripples.length === 0) {
+      if (dist > 8 || ripples.length === 0) {
         ripples.push(new Ripple(x, y));
-        for (let i = 0; i < 2; i++) {
-          particles.push(new FluidParticle(x, y, dx + (Math.random() - 0.5) * 2, dy + (Math.random() - 0.5) * 2));
-        }
+        particles.push(new FluidParticle(x, y, dx, dy));
         lastX = x;
         lastY = y;
       }
@@ -144,12 +142,11 @@ export default function FluidCanvas() {
     canvas.addEventListener('touchmove', handlePointerMove, { passive: true });
     window.addEventListener('touchend', handlePointerUp);
 
-    // Animation loop
     const animate = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+      // Faster trail clear to prevent muddy accumulation
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
       ctx.fillRect(0, 0, width, height);
 
-      // Update and draw ripples
       for (let i = ripples.length - 1; i >= 0; i--) {
         const r = ripples[i];
         r.update();
@@ -159,7 +156,6 @@ export default function FluidCanvas() {
         }
       }
 
-      // Update and draw fluid particles
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.update();
@@ -189,19 +185,21 @@ export default function FluidCanvas() {
   }, []);
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden border border-pink-400/20 bg-black/60 shadow-[0_0_20px_rgba(255,105,180,0.12)]">
-      <div className="absolute top-3 left-4 z-10 pointer-events-none flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-pink-400 animate-ping" />
-        <span className="text-xs text-pink-300/80 font-medium tracking-wide">
-          Interactive Fluid Ripple Zone
+    <div className="w-full rounded-3xl overflow-hidden border border-pink-400/20 bg-black/70 shadow-[0_0_20px_rgba(255,105,180,0.12)]">
+      <div className="p-3 pb-1 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-pink-400 animate-ping" />
+          <span className="text-xs text-pink-300 font-medium tracking-wide">
+            Interactive Fluid Ripple Zone
+          </span>
+        </div>
+        <span className="text-[11px] text-pink-200/50 font-light">
+          Glide fingers across
         </span>
       </div>
-      <p className="absolute bottom-3 left-4 z-10 pointer-events-none text-[11px] text-pink-200/50 font-light">
-        Glide your fingers across to create slow luminous ripples
-      </p>
       <canvas
         ref={canvasRef}
-        className="w-full h-44 cursor-crosshair touch-none block"
+        className="w-full h-72 cursor-crosshair touch-none block"
       />
     </div>
   );

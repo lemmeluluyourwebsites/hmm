@@ -17,14 +17,14 @@ A mobile-first, emotionally engaging web application designed as a cozy, safe ha
 - **My Open When Letters**: A gently pulsing card linking directly to your personal Open When Letters collection.
 
 ### 2. The Sensory Fidget Zone
-- **Fluid Simulation**: Mesmerizing, slow-moving pink ripples and viscous liquid trails that follow your touch or cursor.
+- **Fluid Simulation**: Mesmerizing, fast-dissipating pink ripples and water glows that follow your touch or cursor cleanly without getting messy.
 - **Haptic Bubble Wrap**: A responsive grid of glassmorphic pink bubbles with tactile feedback (`navigator.vibrate`), scaled pops, and audio synthesizers.
-- **Scratch to Reveal**: An interactive HTML5 canvas eraser layer revealing a sweet hidden memory photo underneath with celebratory confetti upon unveiling.
+- **Mystery Scratch Card Pop-up**: An interactive pop-up box with an adaptive aspect ratio that fits the photo naturally. Each scratch is a surprise random photo from the collection with no captions or spoilers. An accurate pixel calculation requires revealing 90% before the full keepsake is unveiled.
 
 ### 3. Cozy Mini-Game: Catch the Hearts
-- A mindless, relaxing arcade experience where gentle pink hearts sway down from the sky.
-- Drag the cute little woven ribbon basket to catch them.
-- Gentle, slow, and forgiving physics with continuous affirmations as your score grows.
+- A lag-free, hardware-accelerated canvas experience where gentle pink hearts and emojis sway down from the sky.
+- Drag the cute ribbon basket to collect them.
+- Tracks "Emojis Collected" with comforting praises as your score grows.
 
 ## Getting Started
 

@@ -1,188 +1,146 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Sparkles, RotateCcw, Heart, ChevronLeft, ChevronRight, Play, Film, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, X, RotateCcw, Heart, Gift } from 'lucide-react';
 
-const MEDIA_ITEMS = [
-  {
-    id: 1,
-    type: 'image',
-    url: '/media/photo-1.jpg',
-    title: 'Pure Joy',
-    caption: 'Lessgooooo! A precious golden celebration.',
-  },
-  {
-    id: 2,
-    type: 'image',
-    url: '/media/photo-2.jpg',
-    title: 'Warm Smiles',
-    caption: 'Surrounded by the warmest smiles and love.',
-  },
-  {
-    id: 3,
-    type: 'image',
-    url: '/media/photo-3.jpg',
-    title: 'Shared Moments',
-    caption: 'Wristbands and unforgettable shared times.',
-  },
-  {
-    id: 4,
-    type: 'image',
-    url: '/media/photo-4.jpg',
-    title: 'Vintage Cool',
-    caption: 'Cool shades and timeless charm.',
-  },
-  {
-    id: 5,
-    type: 'image',
-    url: '/media/photo-5.jpg',
-    title: 'Starry Eyes',
-    caption: 'Bright stars and innocence from day one.',
-  },
-  {
-    id: 6,
-    type: 'image',
-    url: '/media/photo-6.png',
-    title: 'Precious Memory',
-    caption: 'A cherished snapshot etched in our hearts.',
-  },
-  {
-    id: 7,
-    type: 'video',
-    url: '/media/video-1.mp4',
-    title: 'Cozy Clip 1',
-    caption: 'A moving memory full of life and giggles.',
-  },
-  {
-    id: 8,
-    type: 'video',
-    url: '/media/video-2.mp4',
-    title: 'Cozy Clip 2',
-    caption: 'Moments in motion that bring instant comfort.',
-  },
+const PHOTOS = [
+  { id: 1, url: '/media/photo-1.jpg', ratio: 1080 / 1920 },
+  { id: 2, url: '/media/photo-2.jpg', ratio: 4032 / 2268 },
+  { id: 3, url: '/media/photo-3.jpg', ratio: 4032 / 3024 },
+  { id: 4, url: '/media/photo-4.jpg', ratio: 1080 / 1920 },
+  { id: 5, url: '/media/photo-5.jpg', ratio: 4080 / 3060 },
+  { id: 6, url: '/media/photo-6.png', ratio: 653 / 653 },
 ];
 
 export default function ScratchCard() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentPhoto, setCurrentPhoto] = useState(PHOTOS[0]);
   const [isRevealed, setIsRevealed] = useState(false);
   const [scratchPercent, setScratchPercent] = useState(0);
 
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const videoRef = useRef(null);
   const isDrawingRef = useRef(false);
   const hasCelebratedRef = useRef(false);
 
-  const currentMedia = MEDIA_ITEMS[currentIndex];
+  // Pick a random photo different from current
+  const pickRandomPhoto = useCallback(() => {
+    const candidates = PHOTOS.filter((p) => p.id !== currentPhoto?.id);
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)] || PHOTOS[0];
+    setCurrentPhoto(chosen);
+  }, [currentPhoto]);
 
-  // Initialize or reset canvas for current media
+  // Open pop-up with a fresh random photo
+  const handleOpen = () => {
+    pickRandomPhoto();
+    setIsOpen(true);
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setIsRevealed(false);
+    setScratchPercent(0);
+    hasCelebratedRef.current = false;
+  };
+
+  // Initialize or reset canvas coating
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const ctx = canvas.getContext('2d');
-    const width = (canvas.width = container.offsetWidth);
-    const height = (canvas.height = container.offsetHeight);
+    const rect = container.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
 
+    canvas.width = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext('2d');
     setIsRevealed(false);
     setScratchPercent(0);
     hasCelebratedRef.current = false;
     ctx.globalCompositeOperation = 'source-over';
 
-    // Soft pink gradient background
-    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    // Soft pink coating
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
     grad.addColorStop(0, '#f48fb1');
     grad.addColorStop(1, '#ff8da1');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, w, h);
 
-    // Dotted pattern
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-    for (let i = 0; i < width; i += 22) {
-      for (let j = 0; j < height; j += 22) {
-        if ((i + j) % 44 === 0) {
+    // Subtle polka dot pattern
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    for (let x = 0; x < w; x += 20) {
+      for (let y = 0; y < h; y += 20) {
+        if ((x + y) % 40 === 0) {
           ctx.beginPath();
-          ctx.arc(i, j, 2.5, 0, Math.PI * 2);
+          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
       }
     }
 
-    // Card Badge and Text Overlay
+    // Centered "Scratch Me" overlay text
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 20px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.shadowBlur = 8;
-    ctx.fillText('✨ Scratch Me ✨', width / 2, height / 2 - 20);
+    ctx.fillText('✨ Scratch Me ✨', w / 2, h / 2 - 10);
 
-    ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+    ctx.font = '12px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#fff0f5';
-    ctx.fillText(
-      currentMedia.type === 'video' ? 'Video hidden inside' : 'Photo hidden inside',
-      width / 2,
-      height / 2 + 14
-    );
-
-    ctx.font = '11px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.fillText('Rub with your finger to reveal', width / 2, height / 2 + 38);
-
+    ctx.fillText('Rub with your finger', w / 2, h / 2 + 16);
     ctx.shadowBlur = 0;
-  }, [currentMedia]);
+  }, []);
 
   useEffect(() => {
-    initCanvas();
-    const handleResize = () => initCanvas();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [initCanvas, currentIndex]);
-
-  // Handle video play when revealed
-  useEffect(() => {
-    if (currentMedia.type === 'video' && videoRef.current) {
-      if (isRevealed) {
-        videoRef.current.play().catch(() => {});
-      } else {
-        videoRef.current.pause();
-        videoRef.current.currentTime = 0;
-      }
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        initCanvas();
+      }, 60);
+      return () => clearTimeout(timer);
     }
-  }, [isRevealed, currentMedia]);
+  }, [isOpen, currentPhoto, initCanvas]);
 
-  // Calculate scratched area percentage
+  // Accurate percentage sampling across the entire canvas
   const calculateProgress = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
+    const w = canvas.width;
+    const h = canvas.height;
+    if (w <= 0 || h <= 0) return;
 
-    const sampleStep = 10;
-    const imgData = ctx.getImageData(0, 0, width, height);
+    const imgData = ctx.getImageData(0, 0, w, h);
     const data = imgData.data;
-    let transparentPixels = 0;
-    let totalSampled = 0;
 
-    for (let y = 0; y < height; y += sampleStep) {
-      for (let x = 0; x < width; x += sampleStep) {
-        const index = (y * width + x) * 4;
+    let totalSampled = 0;
+    let transparentSampled = 0;
+    const step = 6;
+
+    for (let y = 0; y < h; y += step) {
+      for (let x = 0; x < w; x += step) {
+        const idx = (y * w + x) * 4;
         totalSampled++;
-        if (data[index + 3] === 0) {
-          transparentPixels++;
+        // Alpha channel < 35 means erased
+        if (data[idx + 3] < 35) {
+          transparentSampled++;
         }
       }
     }
 
-    const percent = Math.round((transparentPixels / totalSampled) * 100);
+    const percent = totalSampled > 0 ? Math.round((transparentSampled / totalSampled) * 100) : 0;
     setScratchPercent(percent);
 
-    if (percent >= 40 && !hasCelebratedRef.current) {
+    // Hard work threshold: strictly reveals the whole card only when >= 90%
+    if (percent >= 90 && !hasCelebratedRef.current) {
       hasCelebratedRef.current = true;
       setIsRevealed(true);
       confetti({
-        particleCount: 50,
+        particleCount: 55,
         spread: 70,
         origin: { y: 0.6 },
         colors: ['#ff69b4', '#ffd1dc', '#ffffff', '#f48fb1'],
@@ -196,17 +154,20 @@ export default function ScratchCard() {
   const scratchAt = (clientX, clientY) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
     const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    const ctx = canvas.getContext('2d');
+
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 28, 0, Math.PI * 2);
+    ctx.arc(x, y, 26, 0, Math.PI * 2);
     ctx.fill();
 
-    if (navigator.vibrate && Math.random() > 0.75) {
+    if (navigator.vibrate && Math.random() > 0.8) {
       navigator.vibrate(10);
     }
   };
@@ -237,146 +198,146 @@ export default function ScratchCard() {
     }
   };
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % MEDIA_ITEMS.length);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + MEDIA_ITEMS.length) % MEDIA_ITEMS.length);
+  const handleScratchAnother = () => {
+    pickRandomPhoto();
   };
 
   return (
-    <div className="w-full rounded-3xl p-5 bg-[#0e0711] border border-pink-400/25 shadow-[0_0_25px_rgba(255,105,180,0.15)] flex flex-col gap-4">
-      {/* Header and Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-pink-500/15 border border-pink-400/30 flex items-center justify-center">
-            {currentMedia.type === 'video' ? (
-              <Film className="w-4 h-4 text-pink-300" />
-            ) : (
-              <Heart className="w-4 h-4 text-pink-300 fill-pink-300/40" />
-            )}
-          </div>
-          <div>
-            <h3 className="text-base font-semibold text-white tracking-wide">
-              Scratch to Reveal
-            </h3>
-            <p className="text-[11px] text-pink-200/60 font-light">
-              Memory {currentIndex + 1} of {MEDIA_ITEMS.length} ({currentMedia.title})
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={initCanvas}
-          className="min-h-[48px] min-w-[48px] px-3.5 py-2 rounded-2xl bg-pink-500/15 border border-pink-400/30 text-pink-300 hover:text-white hover:bg-pink-500/25 active:scale-95 transition-all text-xs font-medium flex items-center justify-center gap-1.5 touch-manipulation"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset</span>
-        </button>
-      </div>
-
-      {/* 9:16 Aspect Ratio Scratch Container */}
-      <div className="w-full flex justify-center py-1">
-        <div
-          ref={containerRef}
-          className="relative w-full max-w-[280px] sm:max-w-[310px] aspect-[9/16] rounded-3xl overflow-hidden bg-black border-2 border-pink-400/40 select-none touch-none shadow-[0_0_25px_rgba(255,105,180,0.2)]"
-          onMouseDown={handlePointerDown}
-          onMouseMove={handlePointerMove}
-          onMouseUp={handlePointerUp}
-          onTouchStart={handlePointerDown}
-          onTouchMove={handlePointerMove}
-          onTouchEnd={handlePointerUp}
-        >
-          {/* Media Hidden Underneath */}
-          <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
-            {currentMedia.type === 'video' ? (
-              <video
-                ref={videoRef}
-                src={currentMedia.url}
-                className="w-full h-full object-cover"
-                loop
-                playsInline
-                muted
-                controls={isRevealed}
-              />
-            ) : (
-              <img
-                src={currentMedia.url}
-                alt={currentMedia.title}
-                className="w-full h-full object-cover select-none pointer-events-none"
-              />
-            )}
-
-            {/* Bottom Caption Pill */}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 flex flex-col pointer-events-none">
-              <span className="text-xs font-semibold text-white drop-shadow">
-                {currentMedia.title}
-              </span>
-              <span className="text-[11px] text-pink-200/90 font-light mt-0.5">
-                {currentMedia.caption}
-              </span>
+    <>
+      {/* Trigger Card in Fidget Zone */}
+      <div className="w-full rounded-3xl p-5 bg-[#0e0711] border border-pink-400/25 shadow-[0_0_25px_rgba(255,105,180,0.15)] flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-pink-500/15 border border-pink-400/30 flex items-center justify-center">
+              <Gift className="w-4 h-4 text-pink-300" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-white tracking-wide">
+                Mystery Scratch Card
+              </h3>
+              <p className="text-[11px] text-pink-200/60 font-light">
+                A surprise keepsake waiting underneath
+              </p>
             </div>
           </div>
-
-          {/* Scratchable Soft Pink Canvas */}
-          <canvas
-            ref={canvasRef}
-            className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
-              isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'
-            }`}
-          />
+          <Sparkles className="w-4 h-4 text-pink-400" />
         </div>
+
+        <button
+          onClick={handleOpen}
+          className="w-full min-h-[52px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-pink-500/90 to-rose-400/90 text-white font-medium text-sm hover:brightness-110 active:scale-[0.98] transition-all touch-manipulation flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25"
+        >
+          <Gift className="w-4 h-4 text-white" />
+          <span>Open Mystery Scratch Card</span>
+        </button>
       </div>
 
-      {/* Media Selector Dots and Navigation Controls */}
-      <div className="flex items-center justify-between gap-2 pt-1">
-        <button
-          onClick={handlePrev}
-          aria-label="Previous memory"
-          className="min-h-[48px] px-3.5 rounded-2xl bg-pink-500/15 border border-pink-400/30 text-pink-200 hover:text-white hover:bg-pink-500/25 active:scale-95 transition-all text-xs font-medium flex items-center gap-1.5 touch-manipulation"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Prev</span>
-        </button>
-
-        {/* Indicator dots */}
-        <div className="flex items-center gap-1.5 overflow-x-auto px-1 py-2 max-w-[170px] scrollbar-none">
-          {MEDIA_ITEMS.map((item, idx) => (
-            <button
-              key={item.id}
-              onClick={() => setCurrentIndex(idx)}
-              aria-label={`Jump to memory ${idx + 1}`}
-              className={`h-2.5 rounded-full transition-all ${
-                idx === currentIndex
-                  ? 'w-6 bg-pink-400 shadow-[0_0_8px_rgba(255,105,180,0.8)]'
-                  : 'w-2.5 bg-pink-500/25 hover:bg-pink-500/50'
-              }`}
+      {/* Pop-up Box Modal */}
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleClose}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
             />
-          ))}
-        </div>
 
-        <button
-          onClick={handleNext}
-          aria-label="Next memory"
-          className="min-h-[48px] px-3.5 rounded-2xl bg-pink-500/15 border border-pink-400/30 text-pink-200 hover:text-white hover:bg-pink-500/25 active:scale-95 transition-all text-xs font-medium flex items-center gap-1.5 touch-manipulation"
-        >
-          <span>Next</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
+            {/* Pop-up Window */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-sm rounded-3xl p-5 bg-[#0d0711] border border-pink-400/30 shadow-[0_0_40px_rgba(255,105,180,0.25)] flex flex-col items-center gap-4 z-10 overflow-hidden max-h-[90vh]"
+            >
+              {/* Header with Close Button */}
+              <div className="w-full flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-pink-400 fill-pink-400/50" />
+                  <span className="text-sm font-semibold text-white tracking-wide">
+                    Scratch to Reveal
+                  </span>
+                </div>
+                <button
+                  onClick={handleClose}
+                  aria-label="Close modal"
+                  className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center bg-black/50 text-pink-200 border border-pink-400/30 hover:text-white hover:bg-pink-500/20 active:scale-95 transition-all touch-manipulation"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-      {/* Progress Footer */}
-      <div className="flex items-center justify-between text-xs text-pink-200/70 pt-1 border-t border-pink-400/15">
-        <span>Revealed: {scratchPercent}%</span>
-        <span className="text-pink-300 font-medium">
-          {isRevealed
-            ? 'Memory Unlocked 💕'
-            : scratchPercent > 20
-            ? 'Almost there'
-            : 'Scratch to reveal'}
-        </span>
-      </div>
-    </div>
+              {/* Adaptive Aspect Ratio Card Container */}
+              <div className="w-full flex justify-center items-center overflow-hidden py-1">
+                <div
+                  ref={containerRef}
+                  style={{
+                    aspectRatio: `${currentPhoto.ratio}`,
+                    maxHeight: '58vh',
+                    maxWidth: '100%',
+                  }}
+                  className="relative rounded-2xl overflow-hidden bg-black border-2 border-pink-400/40 select-none touch-none shadow-inner"
+                  onMouseDown={handlePointerDown}
+                  onMouseMove={handlePointerMove}
+                  onMouseUp={handlePointerUp}
+                  onTouchStart={handlePointerDown}
+                  onTouchMove={handlePointerMove}
+                  onTouchEnd={handlePointerUp}
+                >
+                  {/* Photo with zero captions or descriptions */}
+                  <img
+                    src={currentPhoto.url}
+                    alt="Mystery surprise"
+                    className="w-full h-full object-contain bg-black select-none pointer-events-none"
+                    onLoad={initCanvas}
+                  />
+
+                  {/* Scratchable Canvas Layer */}
+                  <canvas
+                    ref={canvasRef}
+                    className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
+                      isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Progress and Actions */}
+              <div className="w-full flex items-center justify-between text-xs text-pink-200/80 pt-1 border-t border-pink-400/15">
+                <span>Scratched: {scratchPercent}%</span>
+                <span className="text-pink-300 font-medium">
+                  {isRevealed
+                    ? 'Revealed!'
+                    : scratchPercent >= 90
+                    ? 'Almost there'
+                    : 'Reveal requires 90%'}
+                </span>
+              </div>
+
+              {/* Actions */}
+              <div className="w-full flex items-center gap-2">
+                <button
+                  onClick={initCanvas}
+                  className="flex-1 min-h-[48px] px-3.5 py-2.5 rounded-2xl bg-pink-500/15 border border-pink-400/30 text-pink-200 hover:text-white hover:bg-pink-500/25 active:scale-95 transition-all text-xs font-medium flex items-center justify-center gap-1.5 touch-manipulation"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Scratch Again</span>
+                </button>
+                <button
+                  onClick={handleScratchAnother}
+                  className="flex-1 min-h-[48px] px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-pink-500/80 to-rose-400/80 text-white active:scale-95 transition-all text-xs font-semibold flex items-center justify-center gap-1.5 touch-manipulation shadow-md shadow-pink-500/20"
+                >
+                  <Gift className="w-3.5 h-3.5" />
+                  <span>Next Surprise</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
