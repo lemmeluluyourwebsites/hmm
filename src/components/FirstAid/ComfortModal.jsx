@@ -11,7 +11,7 @@ const COMFORT_DATA = {
   },
   kiss: {
     title: 'Sweet Gentle Kiss',
-    subtitle: 'A sweet peck on your forehead to melt away the stress.',
+    subtitle: 'A sweet peck on your cheeks to melt away the stress.',
     gifUrl: '/media/kiss.gif',
     fallbackEmoji: '💋',
   },

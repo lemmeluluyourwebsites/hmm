@@ -12,19 +12,18 @@ A mobile-first, emotionally engaging web application designed as a cozy, safe ha
 ## Core Sections and Features
 
 ### 1. Emotional First Aid
-- **Need to Vent? Modal**: Type out all heavy thoughts and tap "Burn It" to watch them burn into embers and floating ash particles using an HTML5 canvas particle simulation and synthesized fire audio.
-- **Comfort Delivery Buttons**: Quick access to "I need a hug", "I need a kiss", and "I need both" with looping animated comfort overlays.
+- **Need to Vent? Modal**: Type out all heavy thoughts with a small flame inside the bubble. Pressing "Burn It" triggers procedural burning flame tongues consuming the text into embers, followed by wispy rising smoke that dissipates into thin air.
+- **Comfort Delivery Buttons**: Quick access to "I need a hug", "I need a kiss" (sweet peck on your cheeks), and "I need both" with looping animated comfort overlays.
 - **My Open When Letters**: A gently pulsing card linking directly to your personal Open When Letters collection.
 
 ### 2. The Sensory Fidget Zone
 - **Fluid Simulation**: Mesmerizing, fast-dissipating pink ripples and water glows that follow your touch or cursor cleanly without getting messy.
 - **Haptic Bubble Wrap**: A responsive grid of glassmorphic pink bubbles with tactile feedback (`navigator.vibrate`), scaled pops, and audio synthesizers.
-- **Mystery Scratch Card Pop-up**: An interactive pop-up box with an adaptive aspect ratio that fits the photo naturally. Each scratch is a surprise random photo from the collection with no captions or spoilers. An accurate pixel calculation requires revealing 90% before the full keepsake is unveiled.
+- **Mystery Scratch Card Pop-up**: An interactive pop-up box with an adaptive aspect ratio that fits each photo naturally. Each scratch reveals a surprise random photo from the collection with no captions. An accurate pixel calculation requires revealing 90% before the keepsake is fully unveiled.
 
-### 3. Cozy Mini-Game: Catch the Hearts
-- A lag-free, hardware-accelerated canvas experience where gentle pink hearts and emojis sway down from the sky.
-- Drag the cute ribbon basket to collect them.
-- Tracks "Emojis Collected" with comforting praises as your score grows.
+### 3. Cozy Mini-Games
+- **Catch the Hearts**: Catch hearts (+1) and bonus hugs/kisses (+2) while avoiding distractions (-1). No time limits; game ends only if your score reaches 0 points, with an instant restart option.
+- **More Games Coming Soon**: A cozy teaser card for upcoming additions.
 
 ## Getting Started
 

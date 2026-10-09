@@ -24,7 +24,6 @@ export function playPopSound() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    // Randomize pitch slightly for organic bubble sound
     const startFreq = 420 + Math.random() * 80;
     const endFreq = 840 + Math.random() * 120;
 
@@ -73,13 +72,62 @@ export function playHeartChime() {
   }
 }
 
+// Joyful high arpeggio chime for hug & kiss bonuses (+2)
+export function playBonusChime() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const notes = [659.25, 1046.5]; // E5, C6
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + idx * 0.08);
+      osc.stop(ctx.currentTime + idx * 0.08 + 0.38);
+    });
+  } catch (err) {
+    console.error('Audio bonus error:', err);
+  }
+}
+
+// Soft low thud for catching negative emojis (-1)
+export function playPenaltySound() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(90, ctx.currentTime + 0.2);
+
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch (err) {
+    console.error('Audio penalty error:', err);
+  }
+}
+
 // Fiery whoosh and ember burn sound
 export function playBurnSound() {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    // Filtered noise for fire whoosh
     const bufferSize = ctx.sampleRate * 1.5;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
