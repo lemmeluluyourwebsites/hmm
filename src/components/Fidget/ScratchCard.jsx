@@ -2,19 +2,17 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Sparkles, X, RotateCcw, Heart, Gift } from 'lucide-react';
-
-const PHOTOS = [
-  { id: 1, url: '/media/photo-1.jpg', ratio: 1080 / 1920 },
-  { id: 2, url: '/media/photo-2.jpg', ratio: 4032 / 2268 },
-  { id: 3, url: '/media/photo-3.jpg', ratio: 4032 / 3024 },
-  { id: 4, url: '/media/photo-4.jpg', ratio: 1080 / 1920 },
-  { id: 5, url: '/media/photo-5.jpg', ratio: 4080 / 3060 },
-  { id: 6, url: '/media/photo-6.png', ratio: 653 / 653 },
-];
+import { useAuth } from '../../context/AuthContext';
+import { PERSONAL_PHOTOS, SAMPLE_COUPLE_PHOTOS } from '../../config/mediaConfig';
 
 export default function ScratchCard() {
+  const { currentUser } = useAuth();
+
+  // Influencer sees public sample couple photos; personal users see their own photos
+  const photoPool = currentUser?.isInfluencer ? SAMPLE_COUPLE_PHOTOS : PERSONAL_PHOTOS;
+
   const [isOpen, setIsOpen] = useState(false);
-  const [currentPhoto, setCurrentPhoto] = useState(PHOTOS[0]);
+  const [currentPhoto, setCurrentPhoto] = useState(photoPool[0]);
   const [isRevealed, setIsRevealed] = useState(false);
   const [scratchPercent, setScratchPercent] = useState(0);
 
@@ -25,10 +23,10 @@ export default function ScratchCard() {
 
   // Pick a random photo different from current
   const pickRandomPhoto = useCallback(() => {
-    const candidates = PHOTOS.filter((p) => p.id !== currentPhoto?.id);
-    const chosen = candidates[Math.floor(Math.random() * candidates.length)] || PHOTOS[0];
+    const candidates = photoPool.filter((p) => p.id !== currentPhoto?.id);
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)] || photoPool[0];
     setCurrentPhoto(chosen);
-  }, [currentPhoto]);
+  }, [currentPhoto, photoPool]);
 
   // Open pop-up with a fresh random photo
   const handleOpen = () => {

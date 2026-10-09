@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginPage from './components/Auth/LoginPage';
 import Header from './components/Header';
 import Navbar from './components/Navbar';
 import FirstAidSection from './components/FirstAid/FirstAidSection';
 import FidgetSection from './components/Fidget/FidgetSection';
 import GamesSection from './components/Games/GamesSection';
 
-export default function App() {
+function HamperApp() {
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('first-aid');
+
+  // If user is not authenticated, display the secret login landing page
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="min-h-screen bg-black text-[#ffd1dc] flex flex-col items-center justify-between selection:bg-pink-500/30 selection:text-white relative overflow-x-hidden">
@@ -65,5 +73,13 @@ export default function App() {
       {/* Fixed Bottom Navigation */}
       <Navbar activeTab={activeTab} onChangeTab={setActiveTab} />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <HamperApp />
+    </AuthProvider>
   );
 }

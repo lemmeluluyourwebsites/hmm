@@ -9,12 +9,18 @@ A mobile-first, emotionally engaging web application designed as a cozy, safe ha
 - Mobile-first, thumb-friendly touch targets (minimum 48x48 pixels)
 - Native app feel with smooth tab transitions and glassmorphism
 
+## Authentication and Access Levels
+The application features a secure landing page for restricted access:
+- **Tirth** (username: `tirth`, password: `smile`): Full access to personal keepsake photos and personal Open When Letters.
+- **Krisha** (username: `krisha`, password: `smile`): Full access to personal keepsake photos and personal Open When Letters.
+- **Influencer** (username: `influencer`, password: `influence`): Limited demo access. Personal photos are replaced with aesthetic public couple photos in the scratch card, and the Open When Letters card routes to sample open letters.
+
 ## Core Sections and Features
 
 ### 1. Emotional First Aid
 - **Need to Vent? Modal**: Type out all heavy thoughts with a small flame inside the bubble. Pressing "Burn It" triggers procedural burning flame tongues consuming the text into embers, followed by wispy rising smoke that dissipates into thin air.
 - **Comfort Delivery Buttons**: Quick access to "I need a hug", "I need a kiss" (sweet peck on your cheeks), and "I need both" with looping animated comfort overlays.
-- **My Open When Letters**: A gently pulsing card linking directly to your personal Open When Letters collection.
+- **My Open When Letters**: A gently pulsing card linking to your personal Open When Letters collection (or sample letter for influencers).
 
 ### 2. The Sensory Fidget Zone
 - **Fluid Simulation**: Mesmerizing, fast-dissipating pink ripples and water glows that follow your touch or cursor cleanly without getting messy.

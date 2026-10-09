@@ -1,13 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, ExternalLink, Heart } from 'lucide-react';
-
-const LETTERS_URL =
-  'https://openwhenletters.app/c/50985211-70cc-4705-85b2-2b786a28429c/v/e589b11821d520f4346a76b611480fb81e7197d3d31d608900fe0cc4b5d7b927';
+import { useAuth } from '../../context/AuthContext';
+import {
+  PERSONAL_OPEN_LETTERS_URL,
+  SAMPLE_OPEN_LETTERS_URL,
+} from '../../config/mediaConfig';
 
 export default function OpenWhenCard() {
+  const { currentUser } = useAuth();
+
   const handleOpenLetters = () => {
-    window.open(LETTERS_URL, '_blank', 'noopener,noreferrer');
+    // If user is influencer, open sample letters link; otherwise open personal link
+    const targetUrl = currentUser?.isInfluencer
+      ? SAMPLE_OPEN_LETTERS_URL
+      : PERSONAL_OPEN_LETTERS_URL;
+
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -32,7 +41,7 @@ export default function OpenWhenCard() {
         <div className="flex flex-col text-left">
           <div className="flex items-center gap-1.5">
             <h4 className="text-base font-semibold text-white tracking-wide">
-              My Open When Letters
+              {currentUser?.isInfluencer ? 'Sample Open When Letters' : 'My Open When Letters'}
             </h4>
             <Heart className="w-3.5 h-3.5 text-pink-400 fill-pink-400/60" />
           </div>
