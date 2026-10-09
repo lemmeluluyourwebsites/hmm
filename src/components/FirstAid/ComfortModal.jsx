@@ -6,19 +6,19 @@ const COMFORT_DATA = {
   hug: {
     title: 'A Warm Tight Hug',
     subtitle: 'Wrapping you in the softest, safest embrace right now.',
-    gifUrl: 'https://media.giphy.com/media/3M4NpbLCTxBqU/giphy.gif',
+    gifUrl: '/media/hug.gif',
     fallbackEmoji: '🫂',
   },
   kiss: {
     title: 'Sweet Gentle Kiss',
     subtitle: 'A sweet peck on your forehead to melt away the stress.',
-    gifUrl: 'https://media.giphy.com/media/G3va31oEEnIkM/giphy.gif',
+    gifUrl: '/media/kiss.gif',
     fallbackEmoji: '💋',
   },
   both: {
     title: 'Warm Hug & Sweet Kiss',
     subtitle: 'All the cuddles, love, and sweet kisses reserved just for you.',
-    gifUrl: 'https://media.giphy.com/media/od5H3PmEG5EVq/giphy.gif',
+    gifUrl: '/media/both.gif',
     fallbackEmoji: '💖',
   },
 };

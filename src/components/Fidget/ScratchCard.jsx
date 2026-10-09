@@ -1,20 +1,81 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles, RotateCcw, Heart, Eye } from 'lucide-react';
+import { Sparkles, RotateCcw, Heart, ChevronLeft, ChevronRight, Play, Film, Image as ImageIcon } from 'lucide-react';
 
-const DEFAULT_PHOTO_URL =
-  'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80';
+const MEDIA_ITEMS = [
+  {
+    id: 1,
+    type: 'image',
+    url: '/media/photo-1.jpg',
+    title: 'Pure Joy',
+    caption: 'Lessgooooo! A precious golden celebration.',
+  },
+  {
+    id: 2,
+    type: 'image',
+    url: '/media/photo-2.jpg',
+    title: 'Warm Smiles',
+    caption: 'Surrounded by the warmest smiles and love.',
+  },
+  {
+    id: 3,
+    type: 'image',
+    url: '/media/photo-3.jpg',
+    title: 'Shared Moments',
+    caption: 'Wristbands and unforgettable shared times.',
+  },
+  {
+    id: 4,
+    type: 'image',
+    url: '/media/photo-4.jpg',
+    title: 'Vintage Cool',
+    caption: 'Cool shades and timeless charm.',
+  },
+  {
+    id: 5,
+    type: 'image',
+    url: '/media/photo-5.jpg',
+    title: 'Starry Eyes',
+    caption: 'Bright stars and innocence from day one.',
+  },
+  {
+    id: 6,
+    type: 'image',
+    url: '/media/photo-6.png',
+    title: 'Precious Memory',
+    caption: 'A cherished snapshot etched in our hearts.',
+  },
+  {
+    id: 7,
+    type: 'video',
+    url: '/media/video-1.mp4',
+    title: 'Cozy Clip 1',
+    caption: 'A moving memory full of life and giggles.',
+  },
+  {
+    id: 8,
+    type: 'video',
+    url: '/media/video-2.mp4',
+    title: 'Cozy Clip 2',
+    caption: 'Moments in motion that bring instant comfort.',
+  },
+];
 
-export default function ScratchCard({ photoUrl = DEFAULT_PHOTO_URL }) {
-  const canvasRef = useRef(null);
-  const containerRef = useRef(null);
+export default function ScratchCard() {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
   const [scratchPercent, setScratchPercent] = useState(0);
+
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const videoRef = useRef(null);
   const isDrawingRef = useRef(false);
   const hasCelebratedRef = useRef(false);
 
-  // Initialize canvas layer
-  const initCanvas = () => {
+  const currentMedia = MEDIA_ITEMS[currentIndex];
+
+  // Initialize or reset canvas for current media
+  const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
@@ -23,50 +84,72 @@ export default function ScratchCard({ photoUrl = DEFAULT_PHOTO_URL }) {
     const width = (canvas.width = container.offsetWidth);
     const height = (canvas.height = container.offsetHeight);
 
-    // Reset state
     setIsRevealed(false);
     setScratchPercent(0);
     hasCelebratedRef.current = false;
     ctx.globalCompositeOperation = 'source-over';
 
-    // Solid soft pink background
-    ctx.fillStyle = '#f48fb1';
+    // Soft pink gradient background
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#f48fb1');
+    grad.addColorStop(1, '#ff8da1');
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // Subtle decorative pattern or tint
-    ctx.fillStyle = '#ffb7ce';
-    for (let i = 0; i < width; i += 24) {
-      for (let j = 0; j < height; j += 24) {
-        if ((i + j) % 48 === 0) {
+    // Dotted pattern
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    for (let i = 0; i < width; i += 22) {
+      for (let j = 0; j < height; j += 22) {
+        if ((i + j) % 44 === 0) {
           ctx.beginPath();
-          ctx.arc(i, j, 3, 0, Math.PI * 2);
+          ctx.arc(i, j, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
       }
     }
 
-    // "Scratch Me" text overlay
+    // Card Badge and Text Overlay
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
+    ctx.font = 'bold 20px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.shadowBlur = 8;
-    ctx.fillText('✨ Scratch Me ✨', width / 2, height / 2 - 10);
+    ctx.fillText('✨ Scratch Me ✨', width / 2, height / 2 - 20);
 
     ctx.font = '13px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#ffe4ec';
-    ctx.fillText('A sweet memory is hidden below', width / 2, height / 2 + 18);
+    ctx.fillStyle = '#fff0f5';
+    ctx.fillText(
+      currentMedia.type === 'video' ? 'Video hidden inside' : 'Photo hidden inside',
+      width / 2,
+      height / 2 + 14
+    );
+
+    ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText('Rub with your finger to reveal', width / 2, height / 2 + 38);
 
     ctx.shadowBlur = 0;
-  };
+  }, [currentMedia]);
 
   useEffect(() => {
     initCanvas();
     const handleResize = () => initCanvas();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [initCanvas, currentIndex]);
+
+  // Handle video play when revealed
+  useEffect(() => {
+    if (currentMedia.type === 'video' && videoRef.current) {
+      if (isRevealed) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+      }
+    }
+  }, [isRevealed, currentMedia]);
 
   // Calculate scratched area percentage
   const calculateProgress = () => {
@@ -76,8 +159,7 @@ export default function ScratchCard({ photoUrl = DEFAULT_PHOTO_URL }) {
     const width = canvas.width;
     const height = canvas.height;
 
-    // Sample pixels for performance
-    const sampleStep = 8;
+    const sampleStep = 10;
     const imgData = ctx.getImageData(0, 0, width, height);
     const data = imgData.data;
     let transparentPixels = 0;
@@ -96,14 +178,14 @@ export default function ScratchCard({ photoUrl = DEFAULT_PHOTO_URL }) {
     const percent = Math.round((transparentPixels / totalSampled) * 100);
     setScratchPercent(percent);
 
-    if (percent >= 45 && !hasCelebratedRef.current) {
+    if (percent >= 40 && !hasCelebratedRef.current) {
       hasCelebratedRef.current = true;
       setIsRevealed(true);
       confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.7 },
-        colors: ['#ff69b4', '#ffd1dc', '#ffffff'],
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff69b4', '#ffd1dc', '#ffffff', '#f48fb1'],
       });
       if (navigator.vibrate) {
         navigator.vibrate([40, 40, 80]);
@@ -121,7 +203,7 @@ export default function ScratchCard({ photoUrl = DEFAULT_PHOTO_URL }) {
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 26, 0, Math.PI * 2);
+    ctx.arc(x, y, 28, 0, Math.PI * 2);
     ctx.fill();
 
     if (navigator.vibrate && Math.random() > 0.75) {
@@ -155,20 +237,32 @@ export default function ScratchCard({ photoUrl = DEFAULT_PHOTO_URL }) {
     }
   };
 
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % MEDIA_ITEMS.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + MEDIA_ITEMS.length) % MEDIA_ITEMS.length);
+  };
+
   return (
     <div className="w-full rounded-3xl p-5 bg-[#0e0711] border border-pink-400/25 shadow-[0_0_25px_rgba(255,105,180,0.15)] flex flex-col gap-4">
-      {/* Header */}
+      {/* Header and Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-pink-500/15 border border-pink-400/30 flex items-center justify-center">
-            <Heart className="w-4 h-4 text-pink-300 fill-pink-300/40" />
+            {currentMedia.type === 'video' ? (
+              <Film className="w-4 h-4 text-pink-300" />
+            ) : (
+              <Heart className="w-4 h-4 text-pink-300 fill-pink-300/40" />
+            )}
           </div>
           <div>
             <h3 className="text-base font-semibold text-white tracking-wide">
               Scratch to Reveal
             </h3>
             <p className="text-[11px] text-pink-200/60 font-light">
-              Rub the soft pink surface with your finger
+              Memory {currentIndex + 1} of {MEDIA_ITEMS.length} ({currentMedia.title})
             </p>
           </div>
         </div>
@@ -182,49 +276,105 @@ export default function ScratchCard({ photoUrl = DEFAULT_PHOTO_URL }) {
         </button>
       </div>
 
-      {/* Scratch Canvas Area */}
-      <div
-        ref={containerRef}
-        className="relative w-full h-56 rounded-2xl overflow-hidden bg-black border border-pink-400/30 select-none touch-none shadow-inner"
-        onMouseDown={handlePointerDown}
-        onMouseMove={handlePointerMove}
-        onMouseUp={handlePointerUp}
-        onTouchStart={handlePointerDown}
-        onTouchMove={handlePointerMove}
-        onTouchEnd={handlePointerUp}
-      >
-        {/* Hidden Photo Underneath */}
-        <div className="absolute inset-0 w-full h-full">
-          <img
-            src={photoUrl}
-            alt="Revealed cute memory"
-            className="w-full h-full object-cover select-none pointer-events-none"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
-            <span className="text-xs font-medium text-pink-100 drop-shadow">
-              You are unconditionally cherished.
-            </span>
-          </div>
-        </div>
+      {/* 9:16 Aspect Ratio Scratch Container */}
+      <div className="w-full flex justify-center py-1">
+        <div
+          ref={containerRef}
+          className="relative w-full max-w-[280px] sm:max-w-[310px] aspect-[9/16] rounded-3xl overflow-hidden bg-black border-2 border-pink-400/40 select-none touch-none shadow-[0_0_25px_rgba(255,105,180,0.2)]"
+          onMouseDown={handlePointerDown}
+          onMouseMove={handlePointerMove}
+          onMouseUp={handlePointerUp}
+          onTouchStart={handlePointerDown}
+          onTouchMove={handlePointerMove}
+          onTouchEnd={handlePointerUp}
+        >
+          {/* Media Hidden Underneath */}
+          <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
+            {currentMedia.type === 'video' ? (
+              <video
+                ref={videoRef}
+                src={currentMedia.url}
+                className="w-full h-full object-cover"
+                loop
+                playsInline
+                muted
+                controls={isRevealed}
+              />
+            ) : (
+              <img
+                src={currentMedia.url}
+                alt={currentMedia.title}
+                className="w-full h-full object-cover select-none pointer-events-none"
+              />
+            )}
 
-        {/* Scratchable Pink Canvas Layer */}
-        <canvas
-          ref={canvasRef}
-          className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
-            isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'
-          }`}
-        />
+            {/* Bottom Caption Pill */}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 flex flex-col pointer-events-none">
+              <span className="text-xs font-semibold text-white drop-shadow">
+                {currentMedia.title}
+              </span>
+              <span className="text-[11px] text-pink-200/90 font-light mt-0.5">
+                {currentMedia.caption}
+              </span>
+            </div>
+          </div>
+
+          {/* Scratchable Soft Pink Canvas */}
+          <canvas
+            ref={canvasRef}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
+              isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'
+            }`}
+          />
+        </div>
       </div>
 
-      {/* Progress & Message */}
+      {/* Media Selector Dots and Navigation Controls */}
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <button
+          onClick={handlePrev}
+          aria-label="Previous memory"
+          className="min-h-[48px] px-3.5 rounded-2xl bg-pink-500/15 border border-pink-400/30 text-pink-200 hover:text-white hover:bg-pink-500/25 active:scale-95 transition-all text-xs font-medium flex items-center gap-1.5 touch-manipulation"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span>Prev</span>
+        </button>
+
+        {/* Indicator dots */}
+        <div className="flex items-center gap-1.5 overflow-x-auto px-1 py-2 max-w-[170px] scrollbar-none">
+          {MEDIA_ITEMS.map((item, idx) => (
+            <button
+              key={item.id}
+              onClick={() => setCurrentIndex(idx)}
+              aria-label={`Jump to memory ${idx + 1}`}
+              className={`h-2.5 rounded-full transition-all ${
+                idx === currentIndex
+                  ? 'w-6 bg-pink-400 shadow-[0_0_8px_rgba(255,105,180,0.8)]'
+                  : 'w-2.5 bg-pink-500/25 hover:bg-pink-500/50'
+              }`}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={handleNext}
+          aria-label="Next memory"
+          className="min-h-[48px] px-3.5 rounded-2xl bg-pink-500/15 border border-pink-400/30 text-pink-200 hover:text-white hover:bg-pink-500/25 active:scale-95 transition-all text-xs font-medium flex items-center gap-1.5 touch-manipulation"
+        >
+          <span>Next</span>
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Progress Footer */}
       <div className="flex items-center justify-between text-xs text-pink-200/70 pt-1 border-t border-pink-400/15">
         <span>Revealed: {scratchPercent}%</span>
         <span className="text-pink-300 font-medium">
           {isRevealed
-            ? 'Fully Unveiled'
+            ? 'Memory Unlocked 💕'
             : scratchPercent > 20
             ? 'Almost there'
-            : 'Scratch anywhere'}
+            : 'Scratch to reveal'}
         </span>
       </div>
     </div>
